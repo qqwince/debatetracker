@@ -10,3 +10,4 @@ aiohttp
 dotenv
 python-dotenv
 asyncpg
+alembic
