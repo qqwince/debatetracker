@@ -15,3 +15,4 @@ async def create_user(db: AsyncSession, login: str) -> User:
     db.add(user)
     await db.flush()
     return user
+
