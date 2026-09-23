@@ -22,12 +22,11 @@ async def create_game(db: AsyncSession, payload: GameRequest, current_user: User
     await db.commit()
     return GameResponse.model_validate(game)
 
-async def get_game(db: AsyncSession, current_user: User):
-    game = await games_repository.get_game(db, current_user)
+async def get_game(db: AsyncSession, game_id: int, current_user: User):
+    game = await games_repository.get_game(db, game_id, current_user)
     return game
 
 async def edit_game(db: AsyncSession, game_id: int, payload: GameRequest, current_user: User):
-    print(F"2game_id={game_id}")
     game = await games_repository.edit_game(
         db, 
         game_id,
@@ -36,3 +35,8 @@ async def edit_game(db: AsyncSession, game_id: int, payload: GameRequest, curren
     )
     await db.commit()
     return GameResponse.model_validate(game)
+
+async def delete_game(db: AsyncSession, game_id: int, current_user: User):
+    game = await games_repository.delete_game(db, game_id, current_user)
+    await db.commit()
+    return game
