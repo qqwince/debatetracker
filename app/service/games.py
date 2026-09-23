@@ -14,10 +14,25 @@ async def create_game(db: AsyncSession, payload: GameRequest, current_user: User
         payload.teammate,
         payload.position,
         payload.speaker_points,
-        payload.round_pointer,
+        payload.round_points,
         payload.motion_type,
         payload.motion_theme,
         current_user
             )
+    await db.commit()
+    return GameResponse.model_validate(game)
+
+async def get_game(db: AsyncSession, current_user: User):
+    game = await games_repository.get_game(db, current_user)
+    return game
+
+async def edit_game(db: AsyncSession, game_id: int, payload: GameRequest, current_user: User):
+    print(F"2game_id={game_id}")
+    game = await games_repository.edit_game(
+        db, 
+        game_id,
+        payload,
+        current_user
+    )
     await db.commit()
     return GameResponse.model_validate(game)

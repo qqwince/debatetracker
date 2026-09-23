@@ -174,7 +174,7 @@ function renderApp(user, notice = "") {
               </label>
               <label>
                 Раунд
-                <input name="round_pointer" type="number" required min="1" max="9" value="1" />
+                <input name="round_points" type="number" required min="1" max="9" value="1" />
               </label>
               <label>
                 Тип моушена
@@ -200,7 +200,7 @@ function renderApp(user, notice = "") {
                     (game) => `
                 <li>
                   <strong>${game.tournament_name}</strong>
-                  <em>R${game.round_pointer} · ${game.position} · ${game.speaker_points} sp</em>
+                  <em>R${game.round_points} · ${game.position} · ${game.speaker_points} sp</em>
                   <p class="meta">${game.teammate} · ${labelTheme(game.motion_theme)}</p>
                 </li>`
                   )
@@ -230,7 +230,7 @@ function renderApp(user, notice = "") {
       teammate: data.teammate.trim(),
       position: data.position,
       speaker_points: Number(data.speaker_points),
-      round_pointer: Number(data.round_pointer),
+      round_points: Number(data.round_points),
       motion_type: data.motion_type,
       motion_theme: data.motion_theme,
     };

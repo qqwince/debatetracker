@@ -22,7 +22,7 @@ class Game(Base):
     teammate: Mapped[str]
     position: Mapped[str]
     speaker_points: Mapped[int]
-    round_pointer: Mapped[int]
+    round_points: Mapped[int]
     motion_type: Mapped[MotionTypeEnum] #ЭПСЧ
     motion_theme: Mapped[MotionThemeEnum] #politics/economics
     

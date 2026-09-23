@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +14,7 @@ async def create_game(
     teammate,
     position,
     speaker_points,
-    round_pointer,
+    round_points,
     motion_type,
     motion_theme,
     current_user,
@@ -27,7 +28,7 @@ async def create_game(
         teammate=teammate,
         position=position,
         speaker_points=speaker_points,
-        round_pointer=round_pointer,
+        round_points=round_points,
         motion_type=motion_type,
         motion_theme=motion_theme,
         user_id=user_id,
@@ -36,3 +37,36 @@ async def create_game(
     await db.flush()
     return game
 
+async def get_game(
+    db: AsyncSession,
+    current_user,
+    ):
+    stmt = select(Game).where(Game.user_id == current_user.id)
+    result = await db.execute(stmt)
+    games = result.scalars().all()
+    
+    return games
+    
+
+
+async def edit_game(
+    db: AsyncSession,
+    game_id,
+    payload,
+    current_user,
+    ):
+    db_game = select(Game).where(Game.id == game_id, Game.user_id == current_user.id)
+    result = (await db.execute(db_game)).scalar_one_or_none()
+    
+    if not result:
+        raise HTTPException(
+            404,
+            "Game not found"
+        )
+    
+    
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(result, field, value)
+    
+    return result
