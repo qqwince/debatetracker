@@ -1,0 +1,29 @@
+[project]
+name = "debatetracker"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "qqwince",email = "kassaim291@gmail.com"}
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi (>=0.141.1,<0.142.0)",
+    "uvicorn (>=0.54.0,<0.55.0)",
+    "pydantic (>=2.13.5,<3.0.0)",
+    "sqlalchemy (>=2.1.0,<3.0.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "requests (>=2.34.2,<3.0.0)",
+    "asyncio (>=4.0.0,<5.0.0)",
+    "aiohttp (>=3.14.3,<4.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "python-dotenv (>=1.2.3,<2.0.0)",
+    "asyncpg (>=0.31.0,<0.32.0)",
+    "alembic (>=1.20.0,<2.0.0)",
+    "greenlet"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
