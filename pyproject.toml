@@ -20,7 +20,9 @@ dependencies = [
     "python-dotenv (>=1.2.3,<2.0.0)",
     "asyncpg (>=0.31.0,<0.32.0)",
     "alembic (>=1.20.0,<2.0.0)",
-    "greenlet"
+    "greenlet",
+    "pydantic_settings",
+    "passlib[bcrypt]"
 ]
 
 

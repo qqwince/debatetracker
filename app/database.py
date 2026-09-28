@@ -5,13 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+from app.config import settings
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_USER_NAME = os.getenv("DB_USER_NAME")
-DB_NAME = os.getenv("DB_NAME")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+load_dotenv()
+    
+DB_HOST = settings.DB_HOST
+DB_PORT = settings.DB_PORT
+DB_USER_NAME = settings.DB_USER_NAME
+DB_NAME = settings.DB_NAME
+DB_PASSWORD = settings.DB_PASSWORD
 
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER_NAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 

@@ -11,6 +11,7 @@ class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
     game: Mapped[List["Game"]] = relationship(back_populates="user")
 
 class Game(Base):
@@ -29,4 +30,5 @@ class Game(Base):
     
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     user: Mapped["User"] = relationship(back_populates="game")
+
     

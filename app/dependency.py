@@ -4,9 +4,11 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.auth import decode_jwt_token
 from app.database import SessionLocal
 from app.models import User
 from app.repository import users as users_repository
+
 
 security = HTTPBearer()
 
@@ -19,10 +21,8 @@ async def get_current_user(
     db: Session = Depends(get_db),
     ) -> User:
     
-    login = credentials.credentials
+    jwt = decode_jwt_token(credentials.credentials)
+    login = jwt["sub"]
     user = await users_repository.get_user(db, login)
     
-    if not user:
-        raise HTTPException(status_code=401, detail="Unauthrozied")
-
     return user
