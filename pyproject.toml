@@ -22,10 +22,19 @@ dependencies = [
     "alembic (>=1.20.0,<2.0.0)",
     "greenlet",
     "pydantic_settings",
-    "passlib[bcrypt]"
+    "passlib[bcrypt]",
+    "pytest",
+    "pytest_asyncio",
+    "aiosqlite"
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:.*starlette.testclient.*:UserWarning",
+    "ignore:.*httpx2.*:Warning",
+]

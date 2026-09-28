@@ -1,3 +1,4 @@
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -22,8 +23,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     
     
-    class Config:
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env")
 
 
 settings = Settings()
