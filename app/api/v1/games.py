@@ -1,8 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cache.cache import get_redis
 from app.dependency import get_current_user
 from app.dependency import get_db
 from app.models import User
@@ -23,9 +25,10 @@ async def create_game(
 async def get_game(
     db: AsyncSession = Depends(get_db),
     game_id: Optional[int] = None,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    redis: Redis = Depends(get_redis)
     ):
-    return await games_service.get_game(db, game_id, current_user)
+    return await games_service.get_game(db, game_id, current_user, redis)
 
 @router.patch("/game", response_model=GameResponse)
 async def edit_game(

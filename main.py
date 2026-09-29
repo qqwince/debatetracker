@@ -4,15 +4,9 @@ from fastapi import FastAPI
 
 from app.api.v1.users import router as users_router
 from app.api.v1.games import router as games_router
-from app.database import Base, engine
+from app.cache.cache import lifespan
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title="Debate Tracker API", lifespan=lifespan)
 
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
 app.include_router(games_router, prefix="/api/v1", tags=["games"])

@@ -54,10 +54,11 @@ def validate_credentials(username: str, password: str) -> bool:
 
 def create_jwt_token(username: str, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT token for the user."""
+    cache_ttl_seconds = settings.cache_ttl_seconds
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+        expire = datetime.now(timezone.utc) + timedelta(seconds=cache_ttl_seconds)
     
     payload = {
         "sub": username,  # Subject (user identifier)

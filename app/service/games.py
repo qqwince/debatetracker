@@ -1,8 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import User
 from app.repository import games as games_repository
-from app.repository.users import get_user
 from app.schemas import GameRequest, GameResponse
 
 
@@ -22,8 +20,8 @@ async def create_game(db: AsyncSession, payload: GameRequest, current_user: User
     await db.commit()
     return GameResponse.model_validate(game)
 
-async def get_game(db: AsyncSession, game_id: int, current_user: User):
-    game = await games_repository.get_game(db, game_id, current_user)
+async def get_game(db: AsyncSession, game_id: int, current_user: User, redis: Redis):
+    game = await games_repository.get_game(db, game_id, current_user, redis)
     return game
 
 async def edit_game(db: AsyncSession, game_id: int, payload: GameRequest, current_user: User):

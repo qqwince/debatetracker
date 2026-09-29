@@ -1,11 +1,16 @@
+import json
+
 from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 
 from app.models import Game
-from app.repository.users import get_user
-from app.schemas import GameRequest
+from app.schemas import GameResponse
+
+from pydantic import TypeAdapter
+from app.schemas import GameResponse
 
 async def create_game(
     db: AsyncSession,
@@ -41,13 +46,32 @@ async def get_game(
     db: AsyncSession,
     game_id,
     current_user,
+    redis,
     ):
+    
     if game_id:
+        
+        cache_key = f"game:{game_id}"
+        
+        cached_data = await redis.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+
         stmt = select(Game).where(Game.user_id == current_user.id, Game.id == game_id)
+        
+        
     else:
         stmt = select(Game).where(Game.user_id == current_user.id)
     result = await db.execute(stmt)
     games = result.scalars().all()
+    
+    cache_ttl_seconds = settings.cache_ttl_seconds
+
+    adapter = TypeAdapter(list[GameResponse])
+    games_json = adapter.dump_json(games).decode("utf-8")
+
+    if game_id:
+        await redis.set(cache_key, games_json, ex=cache_ttl_seconds)
     
     return games
     
