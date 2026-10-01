@@ -25,11 +25,15 @@ dependencies = [
     "passlib[bcrypt]",
     "pytest",
     "pytest_asyncio",
+<<<<<<< HEAD
     "aiosqlite",
     "pytest-asyncio",
     "redis",
     "pyjwt",
     "fakeredis"
+=======
+    "aiosqlite"
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc
 ]
 
 
@@ -41,4 +45,8 @@ build-backend = "poetry.core.masonry.api"
 filterwarnings = [
     "ignore:.*starlette.testclient.*:UserWarning",
     "ignore:.*httpx2.*:Warning",
+<<<<<<< HEAD
 ]
+=======
+]
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc

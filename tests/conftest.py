@@ -1,11 +1,15 @@
 from typing import AsyncGenerator
 
+<<<<<<< HEAD
 from httpx import ASGITransport, AsyncClient
+=======
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+<<<<<<< HEAD
 from app.auth import blacklist_token
 from app.database import Base
 from app.dependency import get_db
@@ -20,6 +24,12 @@ import app.cache as main_module
 from app.cache.cache import get_redis
 
 
+=======
+from app.database import Base
+from app.dependency import get_db
+from main import app
+
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 test_engine = create_async_engine(
@@ -44,8 +54,13 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
 app.dependency_overrides[get_db] = override_get_db
 
 
+<<<<<<< HEAD
 @pytest_asyncio.fixture()
 async def Client():
+=======
+@pytest.fixture()
+def Client():
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc
     yield TestClient(app)
 
 
@@ -61,6 +76,7 @@ async def setup_db():
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
+<<<<<<< HEAD
         yield session
 
 @pytest_asyncio.fixture()
@@ -103,3 +119,6 @@ async def client(mock_redis) -> AsyncGenerator[AsyncClient, None]:
     # Очищаем переопределения после теста
     app.dependency_overrides.clear()
     main_module.redis_client = None
+=======
+        yield session
+>>>>>>> 04c8b959af715a9228ba628023ead42d83ae4cfc
