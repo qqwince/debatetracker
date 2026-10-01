@@ -21,7 +21,7 @@ async def get_current_user(
     db: Session = Depends(get_db),
     ) -> User:
     
-    jwt = decode_jwt_token(credentials.credentials)
+    jwt = await decode_jwt_token(credentials.credentials)
     login = jwt["sub"]
     user = await users_repository.get_user(db, login)
     

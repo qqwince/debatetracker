@@ -4,7 +4,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
+
+from redis import Redis
 
 from app.config import settings
 
@@ -14,17 +16,12 @@ from passlib.context import CryptContext
 # Настраиваем контекст хеширования (по умолчанию bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Simple in-memory token blacklist store
-# In production, use Redis or a database
-blacklisted_tokens: Dict[str, datetime] = {}
-
 # JWT Security
 security = HTTPBearer()
 
-# Global secret key to ensure consistency
 _jwt_secret_key: Optional[str] = None
 
-def get_jwt_secret_key() -> str:
+async def get_jwt_secret_key() -> str:
     """Get JWT secret key from settings or generate a consistent one."""
     global _jwt_secret_key
     
@@ -39,20 +36,7 @@ def get_jwt_secret_key() -> str:
     
     return _jwt_secret_key
 
-def validate_credentials(username: str, password: str) -> bool:
-    """Validate user credentials.
-    
-    Using secrets.compare_digest() instead of regular string comparison (==)
-    provides protection against timing attacks. A timing attack is where
-    an attacker measures the time it takes to compare strings to determine
-    if they're getting closer to the correct value. The secrets module ensures
-    that the comparison takes the same amount of time regardless of how many
-    characters match, making the comparison resistant to timing attacks.
-    """
-    return (secrets.compare_digest(username, settings.API_USERNAME) and 
-            secrets.compare_digest(password, settings.API_PASSWORD))
-
-def create_jwt_token(username: str, expires_delta: Optional[timedelta] = None) -> str:
+async def create_jwt_token(username: str, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT token for the user."""
     cache_ttl_seconds = settings.cache_ttl_seconds
     if expires_delta:
@@ -67,20 +51,47 @@ def create_jwt_token(username: str, expires_delta: Optional[timedelta] = None) -
         "jti": secrets.token_urlsafe(16)    # JWT ID (unique identifier)
     }
     
-    return jwt.encode(payload, get_jwt_secret_key(), algorithm="HS256")
+    return jwt.encode(payload, await get_jwt_secret_key(), algorithm="HS256")
 
-def decode_jwt_token(token: str) -> Dict:
+
+async def create_refresh_token(
+    username: str,
+    redis: Redis,
+) -> str:
+    """Create a refresh token for the user."""
+    expire = settings.cache_ttl_refresh_seconds
+
+    refresh_token = secrets.token_urlsafe(32)
+    
+    await redis.set(f"refresh:{refresh_token}", username, expire)
+
+    return refresh_token
+
+
+async def create_token_pair(username: str, redis: Redis) -> Tuple[str, str]:
+    """Create both access and refresh tokens for the user."""
+    access_token = await create_jwt_token(username)
+    refresh_token = await create_refresh_token(username, redis)
+    return access_token, refresh_token
+
+
+async def validate_refresh_token(refresh_token: str, redis: Redis) -> str:
+    """Validate refresh token and return username."""
+    token = await redis.get(f"refresh:{refresh_token}")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        )
+        
+    jwt = await create_jwt_token(token)
+
+    return jwt
+
+async def decode_jwt_token(token: str) -> Dict:
     """Decode and validate a JWT token."""
     try:
-        # Check if token is blacklisted
-        if token in blacklisted_tokens:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token has been revoked"
-            )
-        
         # Decode the token
-        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=["HS256"])
+        payload = jwt.decode(token, await get_jwt_secret_key(), algorithms=["HS256"])
         return payload
     
     except jwt.ExpiredSignatureError:
@@ -94,7 +105,7 @@ def decode_jwt_token(token: str) -> Dict:
             detail="Invalid token"
         )
 
-def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+async def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Extract and validate the current user from JWT token."""
     token = credentials.credentials
     payload = decode_jwt_token(token)
@@ -107,41 +118,15 @@ def get_current_user_jwt(credentials: HTTPAuthorizationCredentials = Depends(sec
         )
     
     return username
-
-def blacklist_token(token: str) -> None:
-    """Add token to blacklist (for logout functionality)."""
-    try:
-        payload = jwt.decode(token, get_jwt_secret_key(), algorithms=["HS256"])
-        exp_timestamp = payload.get("exp")
-        if exp_timestamp:
-            exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
-            blacklisted_tokens[token] = exp_datetime
-            
-            # Clean up expired blacklisted tokens
-            cleanup_expired_blacklisted_tokens()
-    except jwt.InvalidTokenError:
-        # If token is invalid, no need to blacklist
-        pass
-
-def cleanup_expired_blacklisted_tokens() -> None:
-    """Remove expired tokens from blacklist to prevent memory leaks."""
-    current_time = datetime.now(timezone.utc)
-    expired_tokens = [
-        token for token, exp_time in blacklisted_tokens.items()
-        if exp_time < current_time
-    ]
-    
-    for token in expired_tokens:
-        del blacklisted_tokens[token] 
         
 ###
 
-def hash_password(password: str) -> str:
+async def hash_password(password: str) -> str:
     """Генерирует хеш пароля с автоматической солью."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Сравнивает чистый пароль с хешем из БД."""
     return bcrypt.checkpw(
         plain_password.encode("utf-8"),

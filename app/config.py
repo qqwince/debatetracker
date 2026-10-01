@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "redis"
     REDIS_PORT: str = "6379"
     REDIS_URL: str = "redis://localhost:6379/0"
-    cache_ttl_seconds: int = 3600
+    cache_ttl_seconds: int = 900
+    cache_ttl_refresh_seconds: int = 3600
     cache_tasks_key: str = "cache:tasks_list"
 
     #JWT

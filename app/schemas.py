@@ -51,3 +51,6 @@ class GameResponse(GameRequest):
 
 class HashedPassword(BaseModel):
     password: str = Field(..., max_length=255)
+
+class RefreshTokenResponse(BaseModel):
+    refresh_token: str
