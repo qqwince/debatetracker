@@ -9,3 +9,8 @@ async def create_user(db: AsyncSession, login: str, password: str):
     response = await users_repository.create_user(db, login, password)
     await db.commit()
     return response
+
+async def login_user(db: AsyncSession, login: str, password: str):
+    response = await users_repository.login_user(db, login, password)
+    await db.commit()
+    return response

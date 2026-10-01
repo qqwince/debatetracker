@@ -9,9 +9,13 @@ from app.service import users as users_service
 
 router = APIRouter()
 
-@router.post("/users")
+@router.post("/users/register")
 async def create_user(payload: UserRequest, db: AsyncSession = Depends(get_db)):
     return await users_service.create_user(db, payload.login, payload.password)
+
+@router.post("/users/login")
+async def login_user(payload: UserRequest, db: AsyncSession = Depends(get_db)):
+    return await users_service.login_user(db, payload.login, payload.password)
 
 @router.get(
     "/users/me",

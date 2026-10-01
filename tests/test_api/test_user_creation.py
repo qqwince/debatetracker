@@ -7,7 +7,7 @@ from app.models import User, Game
 
 def test_user_created_successfully(db_session, Client):
     response = Client.post(
-        "api/v1/users",
+        "api/v1/users/register",
         json={
             "login": "amir",
             "password": "abracadabra"
@@ -20,7 +20,7 @@ def test_user_created_successfully(db_session, Client):
 
 def test_user_created_wrongly_empty_login(db_session, Client):
     response = Client.post(
-        "api/v1/users",
+        "api/v1/users/register",
         json={
             "login": "    ",
             "password": "abracadabra"
@@ -31,7 +31,7 @@ def test_user_created_wrongly_empty_login(db_session, Client):
     
 def test_user_created_wrongly_short_password(db_session, Client):
     response = Client.post(
-        "api/v1/users",
+        "api/v1/users/register",
         json={
             "login": "amir",
             "password": "1"
@@ -49,7 +49,7 @@ async def test_user_exists(db_session, Client):
     await db_session.refresh(user)
     
     response = Client.post(
-            "api/v1/users",
+            "api/v1/users/register",
             json={
                 "login": "test",
                 "password": "1223456"
