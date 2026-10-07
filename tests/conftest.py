@@ -8,12 +8,12 @@ from fastapi.testclient import TestClient
 from requests import session
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.auth import blacklist_token
 from app.cache.cache import get_redis
 from app.database import Base
 from app.dependency import get_db
 from app.repository.users import create_user
 from main import app
+import app.cache.cache as cache_module 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -39,9 +39,7 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
 app.dependency_overrides[get_db] = override_get_db
 
 
-@pytest.fixture()
-def Client():
-    yield TestClient(app)
+
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -59,43 +57,38 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 @pytest_asyncio.fixture()
-async def authorized_client(db_session: AsyncSession):
-    jwt_token = (await create_user(db=db_session, login="mock_user", password="mock_password"))["access_token"]
+async def authorized_client(db_session: AsyncSession, redis):
+    jwt_token = (await create_user(db=db_session, redis=redis, login="mock_user", password="mock_password"))["access_token"]
     await db_session.commit()
     headers = {"Authorization": f"Bearer {jwt_token}"}
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers=headers) as client:
-        try:
             yield client
-        finally:
-            blacklist_token(jwt_token)
-            
-
-@pytest_asyncio.fixture
-async def mock_redis():
-    """Создает фейковый асинхронный клиент Redis в памяти."""
-    fake_client = fakeredis.aioredis.FakeRedis(decode_responses=True)
-    yield fake_client
-    await fake_client.aclose()
 
 
 @pytest_asyncio.fixture
-async def client(mock_redis) -> AsyncGenerator[AsyncClient, None]:
-    """Фикстура для HTTP-клиента с подмененным get_redis и глобальным клиентом."""
-    # 1. Мокаем глобальную переменную redis_client (чтобы код вне dependency injection тоже работал)
-    app.redis_client = mock_redis
+async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis, None]:
+    fake = fakeredis.aioredis.FakeRedis(decode_responses=True)
 
-    # 2. Переопределяем FastAPI dependency
-    app.dependency_overrides[get_redis] = lambda: mock_redis
+    app.dependency_overrides[get_redis] = lambda: fake
+    old_global = getattr(cache_module, "redis_client", None)
+    cache_module.redis_client = fake
+    app.redis_client = fake
 
-    # 3. Создаем тестовый HTTP-клиент
-    async with AsyncClient(
-        transport=ASGITransport(app=app), 
-        base_url="http://test"
-    ) as ac:
+    yield fake
+
+    cache_module.redis_client = old_global
+    app.redis_client = None
+    app.dependency_overrides.pop(get_redis, None)
+    await fake.aclose()
+
+@pytest_asyncio.fixture
+async def client(redis) -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
-    # Очищаем переопределения после теста
-    app.dependency_overrides.clear()
-    app.redis_client = None
-    yield session
+
+@pytest.fixture()
+def Client(redis):
+    yield TestClient(app)
+    

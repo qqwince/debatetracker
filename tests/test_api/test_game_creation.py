@@ -5,7 +5,7 @@ import pytest
 from app.models import User, Game
 
 @pytest.mark.asyncio
-async def test_game_create(authorized_client):
+async def test_game_create(authorized_client, redis):
     response = await authorized_client.post(
                 "api/v1/game",
                 json={
@@ -18,12 +18,12 @@ async def test_game_create(authorized_client):
                     "round_points": 0,
                     "motion_type": "unknown",
                     "motion_theme": "unknown"
-                }
+                },
             )
     assert response.status_code == 200
 
 @pytest.mark.asyncio
-async def test_game_create_unauthorized(Client):
+async def test_game_create_unauthorized(Client, redis):
     response = Client.post(
                 "api/v1/game",
                 json={
@@ -42,7 +42,7 @@ async def test_game_create_unauthorized(Client):
     
 
 @pytest.mark.asyncio
-async def test_game_delete(authorized_client):
+async def test_game_delete(authorized_client, redis):
     create_game_response = await authorized_client.post(
                     "api/v1/game",
                     json={
@@ -68,7 +68,7 @@ async def test_game_delete(authorized_client):
 
 
 @pytest.mark.asyncio
-async def test_game_change(authorized_client):
+async def test_game_change(authorized_client, redis):
     create_game_response = await authorized_client.post(
                     "api/v1/game",
                     json={
@@ -111,7 +111,7 @@ async def test_game_change(authorized_client):
     assert response.json()["motion_theme"] == "kazakhstan"
 
 @pytest.mark.asyncio
-async def test_game_get(authorized_client):
+async def test_game_get(authorized_client, redis):
     create_game_response = await authorized_client.post(
                     "api/v1/game",
                     json={
