@@ -12,17 +12,19 @@ from app.repository import users as users_repository
 
 security = HTTPBearer()
 
+
 async def get_db() -> AsyncGenerator[Session, None]:
     async with SessionLocal() as db:
         yield db
-        
+
+
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security), 
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
-    ) -> User:
-    
+) -> User:
+
     jwt = await decode_jwt_token(credentials.credentials)
     login = jwt["sub"]
     user = await users_repository.get_user(db, login)
-    
+
     return user

@@ -28,8 +28,7 @@ DB_NAME = os.getenv("DB_NAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 DATABASE_URL = (
-    f"postgresql+asyncpg://{DB_USER_NAME}:{DB_PASSWORD}"
-    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    f"postgresql+asyncpg://{DB_USER_NAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 config.set_main_option("sqlalchemy.url", DATABASE_URL)

@@ -29,7 +29,8 @@ dependencies = [
     "pytest-asyncio",
     "redis",
     "pyjwt",
-    "fakeredis"
+    "fakeredis",
+    "ruff"
 ]
 
 
@@ -41,4 +42,27 @@ build-backend = "poetry.core.masonry.api"
 filterwarnings = [
     "ignore:.*starlette.testclient.*:UserWarning",
     "ignore:.*httpx2.*:Warning",
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",   # ошибки стиля pycodestyle
+    "F",   # ошибки Pyflakes
+    "I",   # сортировка импортов
+    "B",   # потенциальные баги
+    "UP",  # современные возможности Python
+]
+
+[tool.ruff.format]
+quote-style = "double"
+[dependency-groups]
+dev = [
+    "ruff (>=0.17.0,<0.18.0)"
 ]

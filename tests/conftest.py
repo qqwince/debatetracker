@@ -13,13 +13,12 @@ from app.database import Base
 from app.dependency import get_db
 from app.repository.users import create_user
 from main import app
-import app.cache.cache as cache_module 
+import app.cache.cache as cache_module
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    TEST_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
 TestingSessionLocal = async_sessionmaker(
@@ -39,9 +38,6 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
 app.dependency_overrides[get_db] = override_get_db
 
 
-
-
-
 @pytest_asyncio.fixture(autouse=True)
 async def setup_db():
     async with test_engine.begin() as conn:
@@ -56,14 +52,21 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
         yield session
 
+
 @pytest_asyncio.fixture()
 async def authorized_client(db_session: AsyncSession, redis):
-    jwt_token = (await create_user(db=db_session, redis=redis, login="mock_user", password="mock_password"))["access_token"]
+    jwt_token = (
+        await create_user(
+            db=db_session, redis=redis, login="mock_user", password="mock_password"
+        )
+    )["access_token"]
     await db_session.commit()
     headers = {"Authorization": f"Bearer {jwt_token}"}
-    
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers=headers) as client:
-            yield client
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test", headers=headers
+    ) as client:
+        yield client
 
 
 @pytest_asyncio.fixture
@@ -82,13 +85,15 @@ async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis, None]:
     app.dependency_overrides.pop(get_redis, None)
     await fake.aclose()
 
+
 @pytest_asyncio.fixture
 async def client(redis) -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
 
 
 @pytest.fixture()
 def Client(redis):
     yield TestClient(app)
-    

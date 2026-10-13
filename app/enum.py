@@ -1,4 +1,3 @@
-
 from enum import StrEnum, auto
 
 
@@ -25,7 +24,8 @@ class MotionThemeEnum(StrEnum):
     kazakhstan = auto()
     social = auto()
     prefers_world = auto()
-    
+
+
 class MotionTypeEnum(StrEnum):
     unknown = auto()
     this_house_believes_that = auto()
@@ -34,4 +34,3 @@ class MotionTypeEnum(StrEnum):
     this_house_regrets = auto()
     this_house_supports = auto()
     this_house_would = auto()
-    
