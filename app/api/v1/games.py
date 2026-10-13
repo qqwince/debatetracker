@@ -22,15 +22,26 @@ async def create_game(
 ):
     return await games_service.create_game(db, payload, current_user)
 
-
-@router.get("/game", response_model=list[GameResponse])
-async def get_game(
+@router.get("/game/{game_id}", response_model=list[GameResponse])
+async def get_game_by_id(
     db: AsyncSession = Depends(get_db),
-    game_id: Optional[int] = None,
-    current_user: User = Depends(get_current_user),
     redis: Redis = Depends(get_redis),
+    current_user: User = Depends(get_current_user),
+    game_id: Optional[int] = None,
+    limit: int = None,
+    cursor: int | None = None,
 ):
-    return await games_service.get_game(db, game_id, current_user, redis)
+    return await games_service.get_game(db, redis, current_user, game_id, limit, cursor)
+
+@router.get("/game")
+async def get_game_pagination(
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
+    current_user: User = Depends(get_current_user),
+    limit: int = None,
+    cursor: int | None = None,
+):
+    return await games_service.get_game_pagination(db, redis, current_user, limit, cursor)
 
 
 @router.patch("/game", response_model=GameResponse)

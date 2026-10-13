@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+from pydantic import BaseModel, ConfigDict, Field
 from app.enum import MotionThemeEnum, MotionTypeEnum
 
 
@@ -33,3 +34,13 @@ class GameUpdate(BaseModel):
 class GameResponse(GameRequest):
     model_config = {"from_attributes": True}
     id: int
+
+class GameCursorPage(BaseModel):
+    items: list[GameResponse]
+    next_cursor: int | None
+    has_more: bool
+
+
+class GameListParams(BaseModel):
+    limit: int = Field(default=20, ge=1, le=100)
+    cursor: int | None = Field(default=None, gt=0)
