@@ -37,8 +37,8 @@ async def get_game_pagination(
     db: AsyncSession,
     redis: Redis,
     current_user: User,
-    limit: int,
-    cursor: int | None = None,
+    limit,
+    cursor,
 ):
     game = await games_repository.get_game_pagination(
         db, redis, current_user, limit, cursor

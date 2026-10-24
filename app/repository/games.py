@@ -84,7 +84,6 @@ async def get_game_pagination(
 
     if (cursor is not None) and limit:
         stmt = stmt.where(Game.id < cursor)
-
     stmt = stmt.order_by(Game.id.desc()).limit(limit + 1)
 
     result = await db.execute(stmt)
