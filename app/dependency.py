@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -9,11 +9,10 @@ from app.database import SessionLocal
 from app.models import User
 from app.repository import users as users_repository
 
-
 security = HTTPBearer()
 
 
-async def get_db() -> AsyncGenerator[Session, None]:
+async def get_db() -> AsyncGenerator[Session]:
     async with SessionLocal() as db:
         yield db
 

@@ -1,8 +1,6 @@
-from decimal import Decimal
-
 import pytest
 
-from app.models import User, Game
+from app.models import User
 
 
 def test_user_created_successfully(db_session, Client):
@@ -48,7 +46,7 @@ async def test_user_exists(db_session, Client):
 
 
 def test_user_logined_wrong_password(db_session, Client):
-    create_user_response = Client.post(
+    Client.post(
         "api/v1/users/register", json={"login": "amir", "password": "abracadabra"}
     )
 
@@ -59,7 +57,7 @@ def test_user_logined_wrong_password(db_session, Client):
 
 
 def test_user_logined_wrong_login(db_session, Client):
-    create_user_response = Client.post(
+    Client.post(
         "api/v1/users/register", json={"login": "amir", "password": "abracadabra"}
     )
 

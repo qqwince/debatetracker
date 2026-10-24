@@ -1,19 +1,18 @@
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import fakeredis
-from httpx import ASGITransport, AsyncClient
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from requests import session
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+import app.cache.cache as cache_module
 from app.cache.cache import get_redis
 from app.database import Base
 from app.dependency import get_db
 from app.repository.users import create_user
 from main import app
-import app.cache.cache as cache_module
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
@@ -30,7 +29,7 @@ TestingSessionLocal = async_sessionmaker(
 )
 
 
-async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+async def override_get_db() -> AsyncGenerator[AsyncSession]:
     async with TestingSessionLocal() as session:
         yield session
 
@@ -48,7 +47,7 @@ async def setup_db():
 
 
 @pytest_asyncio.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session() -> AsyncGenerator[AsyncSession]:
     async with TestingSessionLocal() as session:
         yield session
 
@@ -70,7 +69,7 @@ async def authorized_client(db_session: AsyncSession, redis):
 
 
 @pytest_asyncio.fixture
-async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis, None]:
+async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis]:
     fake = fakeredis.aioredis.FakeRedis(decode_responses=True)
 
     app.dependency_overrides[get_redis] = lambda: fake
@@ -87,7 +86,7 @@ async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis, None]:
 
 
 @pytest_asyncio.fixture
-async def client(redis) -> AsyncGenerator[AsyncClient, None]:
+async def client(redis) -> AsyncGenerator[AsyncClient]:
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:

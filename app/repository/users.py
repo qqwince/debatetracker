@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-
 from redis import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import create_token_pair, hash_password, verify_password
 from app.models import User
 from app.schemas.users import HashedPassword, UserResponse
+
 
 async def get_user(db: AsyncSession, login: str) -> User | None:
     result = await db.execute(select(User).where(User.login == login))
@@ -36,7 +36,7 @@ async def login_user(
 
     is_verified = await verify_password(password, user.password)
 
-    if is_verified == False:
+    if not is_verified:
         raise HTTPException(401, "Incorrect login or password")
     access_token, refresh_token = await create_token_pair(login, redis)
     return {"access_token": access_token, "refresh_token": refresh_token}

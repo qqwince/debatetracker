@@ -1,8 +1,4 @@
-from decimal import Decimal
-
 import pytest
-
-from app.models import User, Game
 
 
 @pytest.mark.asyncio
@@ -60,12 +56,12 @@ async def test_game_delete(authorized_client, redis):
         },
     )
     if not create_game_response.json()["id"]:
-        assert False
+        raise AssertionError()
     response = await authorized_client.delete(
         f"api/v1/game?game_id={create_game_response.json()['id']}",
     )
     assert response.status_code == 200
-    assert response.json()["_soft_closed"] == True
+    assert response.json()["_soft_closed"]
     assert response.json()["rowcount"] == 1
 
 
@@ -86,7 +82,7 @@ async def test_game_change(authorized_client, redis):
         },
     )
     if not create_game_response.json()["id"]:
-        assert False
+        raise AssertionError()
     response = await authorized_client.patch(
         f"api/v1/game?game_id={create_game_response.json()['id']}",
         json={
@@ -130,9 +126,9 @@ async def test_game_get(authorized_client, redis):
         },
     )
     if not create_game_response.json()["id"]:
-        assert False
+        raise AssertionError()
     response = await authorized_client.get(
-        f"api/v1/game?game_id={create_game_response.json()['id']}"
+        f"api/v1/game/{create_game_response.json()['id']}"
     )
     assert response.status_code == 200
     assert len(response.json()) == 1

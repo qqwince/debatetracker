@@ -1,7 +1,9 @@
 from fastapi import HTTPException
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.repository import users as users_repository
+
 
 async def create_user(db: AsyncSession, redis: Redis, login: str, password: str):
     if await users_repository.get_user(db, login):

@@ -1,6 +1,5 @@
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
-from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -10,7 +9,7 @@ class Settings(BaseSettings):
     DB_PORT: str = "5432"
     DB_USER_NAME: str = "postgres"
     DB_NAME: str = "debatetracker"
-    DB_PASSWORD: str
+    DB_PASSWORD: str = "mockPassword"
 
     # REDIS
     REDIS_HOST: str = "redis"

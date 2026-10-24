@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,7 +12,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    game: Mapped[List["Game"]] = relationship(back_populates="user")
+    game: Mapped[list[Game]] = relationship(back_populates="user")
 
 
 class Game(Base):
@@ -32,4 +31,4 @@ class Game(Base):
     motion_theme: Mapped[MotionThemeEnum]  # politics/economics
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(back_populates="game")
+    user: Mapped[User] = relationship(back_populates="game")

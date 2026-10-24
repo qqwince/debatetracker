@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel, ConfigDict, Field
 from app.enum import MotionThemeEnum, MotionTypeEnum
 
 
@@ -20,20 +18,21 @@ class GameRequest(BaseModel):
 
 
 class GameUpdate(BaseModel):
-    entry_creation_date: Optional[datetime] = None
-    tournament_date: Optional[datetime] = None
-    tournament_name: Optional[str] = None
-    teammate: Optional[str] = None
-    position: Optional[str] = None
-    speaker_points: Optional[int] = None
-    round_points: Optional[int] = None
-    motion_type: Optional[MotionTypeEnum] = None  # ЭПСЧ
-    motion_theme: Optional[MotionThemeEnum] = None  # politics/economics
+    entry_creation_date: datetime | None = None
+    tournament_date: datetime | None = None
+    tournament_name: str | None = None
+    teammate: str | None = None
+    position: str | None = None
+    speaker_points: int | None = None
+    round_points: int | None = None
+    motion_type: MotionTypeEnum | None = None  # ЭПСЧ
+    motion_theme: MotionThemeEnum | None = None  # politics/economics
 
 
 class GameResponse(GameRequest):
     model_config = {"from_attributes": True}
     id: int
+
 
 class GameCursorPage(BaseModel):
     items: list[GameResponse]

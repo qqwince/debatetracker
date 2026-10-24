@@ -1,15 +1,13 @@
 import json
 
 from fastapi import HTTPException
+from pydantic import TypeAdapter
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-
 from app.models import Game
 from app.schemas.games import GameCursorPage, GameResponse
-
-from pydantic import TypeAdapter
 
 
 async def create_game(
@@ -60,7 +58,7 @@ async def get_game_by_id(
 
     else:
         stmt = select(Game).where(Game.user_id == current_user.id)
-        
+
     result = await db.execute(stmt)
     games = result.scalars().all()
 
@@ -68,12 +66,12 @@ async def get_game_by_id(
 
     adapter = TypeAdapter(list[GameResponse])
     games_json = adapter.dump_json(games).decode("utf-8")
-    
 
     if game_id:
         await redis.set(cache_key, games_json, ex=cache_ttl_seconds)
 
     return games
+
 
 async def get_game_pagination(
     db: AsyncSession,
@@ -83,29 +81,21 @@ async def get_game_pagination(
     cursor,
 ):
     stmt = select(Game).where(Game.user_id == current_user.id)
-    
+
     if (cursor is not None) and limit:
         stmt = stmt.where(Game.id < cursor)
-    
-    stmt = (
-                stmt
-                .order_by(Game.id.desc())
-                .limit(limit + 1)
-            )
-        
+
+    stmt = stmt.order_by(Game.id.desc()).limit(limit + 1)
+
     result = await db.execute(stmt)
     games = result.scalars().all()
 
     has_more = len(games) > limit
     games = games[:limit]
-    
+
     next_cursor = games[-1].id if games and has_more else None
 
-    return GameCursorPage(
-        items=games,
-        next_cursor=next_cursor,
-        has_more=has_more
-    )
+    return GameCursorPage(items=games, next_cursor=next_cursor, has_more=has_more)
 
 
 async def edit_game(

@@ -11,7 +11,7 @@ from app.repository import users as users_repository
 security = HTTPBearer()
 
 
-async def get_db() -> AsyncGenerator[Session, None]:
+async def get_db() -> AsyncGenerator[Session]:
     async with SessionLocal() as db:
         yield db
 

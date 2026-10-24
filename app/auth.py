@@ -1,17 +1,14 @@
-import bcrypt
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import jwt
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Tuple
+from datetime import UTC, datetime, timedelta
 
+import bcrypt
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from passlib.context import CryptContext
 from redis import Redis
 
 from app.config import settings
-
-
-from passlib.context import CryptContext
 
 # Настраиваем контекст хеширования (по умолчанию bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -19,7 +16,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # JWT Security
 security = HTTPBearer()
 
-_jwt_secret_key: Optional[str] = None
+_jwt_secret_key: str | None = None
 
 
 async def get_jwt_secret_key() -> str:
@@ -39,21 +36,19 @@ async def get_jwt_secret_key() -> str:
 
 
 async def create_jwt_token(
-    username: str, expires_delta: Optional[timedelta] = None
+    username: str, expires_delta: timedelta | None = None
 ) -> str:
     """Create a JWT token for the user."""
     cache_ttl_seconds = settings.cache_ttl_seconds
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(seconds=cache_ttl_seconds)
+        expire = datetime.now(UTC) + timedelta(seconds=cache_ttl_seconds)
 
     payload = {
         "sub": username,  # Subject (user identifier)
         "exp": int(expire.timestamp()),  # Expiration time as Unix timestamp
-        "iat": int(
-            datetime.now(timezone.utc).timestamp()
-        ),  # Issued at as Unix timestamp
+        "iat": int(datetime.now(UTC).timestamp()),  # Issued at as Unix timestamp
         "jti": secrets.token_urlsafe(16),  # JWT ID (unique identifier)
     }
 
@@ -74,7 +69,7 @@ async def create_refresh_token(
     return refresh_token
 
 
-async def create_token_pair(username: str, redis: Redis) -> Tuple[str, str]:
+async def create_token_pair(username: str, redis: Redis) -> tuple[str, str]:
     """Create both access and refresh tokens for the user."""
     access_token = await create_jwt_token(username)
     refresh_token = await create_refresh_token(username, redis)
@@ -94,7 +89,7 @@ async def validate_refresh_token(refresh_token: str, redis: Redis) -> str:
     return jwt
 
 
-async def decode_jwt_token(token: str) -> Dict:
+async def decode_jwt_token(token: str) -> dict:
     """Decode and validate a JWT token."""
     try:
         # Decode the token

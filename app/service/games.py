@@ -1,5 +1,6 @@
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models import User
 from app.repository import games as games_repository
 from app.schemas.games import GameRequest, GameResponse
@@ -22,23 +23,26 @@ async def create_game(db: AsyncSession, payload: GameRequest, current_user: User
     return GameResponse.model_validate(game)
 
 
-async def get_game_by_id(db: AsyncSession, 
-                   redis: Redis,
-                   game_id: int, 
-                   limit: int,
-                   cursor: int | None = None,
-                   ):
-    game = await games_repository.get_game_by_id(db, redis, game_id, limit, cursor)
+async def get_game_by_id(
+    db: AsyncSession,
+    redis: Redis,
+    current_user: User,
+    game_id: int,
+):
+    game = await games_repository.get_game_by_id(db, redis, current_user, game_id)
     return game
 
+
 async def get_game_pagination(
-                   db: AsyncSession, 
-                   redis: Redis,
-                   current_user: User,
-                   limit: int,
-                   cursor: int | None = None,
-                   ):
-    game = await games_repository.get_game_pagination(db, redis, current_user, limit, cursor)
+    db: AsyncSession,
+    redis: Redis,
+    current_user: User,
+    limit: int,
+    cursor: int | None = None,
+):
+    game = await games_repository.get_game_pagination(
+        db, redis, current_user, limit, cursor
+    )
     return game
 
 

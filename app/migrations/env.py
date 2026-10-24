@@ -1,15 +1,13 @@
-from logging.config import fileConfig
 import asyncio
-
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
+import os
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
-import os
+from alembic import context
 from dotenv import load_dotenv
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 from app.models import Base
