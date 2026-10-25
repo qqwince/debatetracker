@@ -52,22 +52,6 @@ async def db_session() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-@pytest_asyncio.fixture()
-async def authorized_client(db_session: AsyncSession, redis):
-    jwt_token = (
-        await create_user(
-            db=db_session, redis=redis, login="mock_user", password="mock_password"
-        )
-    )["access_token"]
-    await db_session.commit()
-    headers = {"Authorization": f"Bearer {jwt_token}"}
-
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test", headers=headers
-    ) as client:
-        yield client
-
-
 @pytest_asyncio.fixture
 async def redis() -> AsyncGenerator[fakeredis.aioredis.FakeRedis]:
     fake = fakeredis.aioredis.FakeRedis(decode_responses=True)
@@ -92,6 +76,20 @@ async def client(redis) -> AsyncGenerator[AsyncClient]:
     ) as ac:
         yield ac
 
+@pytest_asyncio.fixture()
+async def authorized_client(db_session: AsyncSession, redis):
+    jwt_token = (
+        await create_user(
+            db=db_session, redis=redis, login="mock_user", password="mock_password"
+        )
+    )["access_token"]
+    await db_session.commit()
+    headers = {"Authorization": f"Bearer {jwt_token}"}
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test", headers=headers
+    ) as client:
+        yield client
 
 @pytest.fixture()
 def Client(redis):

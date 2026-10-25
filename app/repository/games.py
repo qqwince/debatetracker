@@ -47,30 +47,30 @@ async def get_game_by_id(
     current_user,
     game_id,
 ):
-    if game_id:
-        cache_key = f"game:{game_id}"
+    cache_key = f"game:{current_user.id}:{game_id}"
 
-        cached_data = await redis.get(cache_key)
-        if cached_data:
-            return json.loads(cached_data)
+    cached_data = await redis.get(cache_key)
+    if cached_data:
+        return json.loads(cached_data)
 
-        stmt = select(Game).where(Game.user_id == current_user.id, Game.id == game_id)
-
-    else:
-        stmt = select(Game).where(Game.user_id == current_user.id)
-
+    stmt = select(Game).where(Game.user_id == current_user.id, Game.id == game_id)
     result = await db.execute(stmt)
-    games = result.scalars().all()
+    game = result.scalar_one_or_none()
+    
+    if game is None:
+        raise HTTPException(
+            404,
+            "Game not found"
+        )
 
     cache_ttl_seconds = settings.cache_ttl_seconds
 
-    adapter = TypeAdapter(list[GameResponse])
-    games_json = adapter.dump_json(games).decode("utf-8")
+    adapter = TypeAdapter(GameResponse)
+    game_json = adapter.dump_json(game).decode("utf-8")
 
-    if game_id:
-        await redis.set(cache_key, games_json, ex=cache_ttl_seconds)
+    await redis.set(cache_key, game_json, ex=cache_ttl_seconds)
 
-    return games
+    return game
 
 
 async def get_game_pagination(
@@ -118,13 +118,19 @@ async def edit_game(
 
 async def delete_game(
     db: AsyncSession,
+    redis,
     game_id,
     current_user,
 ):
+    cache_key = f"game:{current_user.id}:{game_id}"
+    await redis.delete(cache_key)
+    
     db_game = delete(Game).where(Game.id == game_id, current_user.id == Game.user_id)
     result = await db.execute(db_game)
 
     if result.rowcount == 0:
-        raise HTTPException(404, "Game not found")
+        raise HTTPException(204, "Game not found")
 
-    return result
+    return {
+        "detail": "Game deleted"
+    }

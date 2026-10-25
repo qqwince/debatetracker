@@ -60,9 +60,9 @@ async def test_game_delete(authorized_client, redis):
     response = await authorized_client.delete(
         f"api/v1/game?game_id={create_game_response.json()['id']}",
     )
+    assert not await redis.get("game:1:1")
     assert response.status_code == 200
-    assert response.json()["_soft_closed"]
-    assert response.json()["rowcount"] == 1
+    assert response.json()["detail"] == "Game deleted"
 
 
 @pytest.mark.asyncio
@@ -130,11 +130,10 @@ async def test_game_get(authorized_client, redis):
     response = await authorized_client.get(
         f"api/v1/game/{create_game_response.json()['id']}"
     )
+    assert await redis.get("game:1:1")
     assert response.status_code == 200
-    assert len(response.json()) == 1
 
-    response = response.json()[0]
-    print(f"\n\n\n\n\n\n{response}\n\n\n\n\n\n")
+    response = response.json()
 
     assert response["tournament_name"] == "nebo_kochevnika"
     assert response["teammate"] == "Matt Caito"

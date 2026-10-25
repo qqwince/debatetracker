@@ -69,9 +69,9 @@ async def create_refresh_token(
     return refresh_token
 
 
-async def create_token_pair(username: str, redis: Redis) -> tuple[str, str]:
+async def create_token_pair(username: str, redis: Redis, expires_delta: timedelta | None = None) -> tuple[str, str]:
     """Create both access and refresh tokens for the user."""
-    access_token = await create_jwt_token(username)
+    access_token = await create_jwt_token(username, expires_delta)
     refresh_token = await create_refresh_token(username, redis)
     return access_token, refresh_token
 

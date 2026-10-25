@@ -54,7 +54,7 @@ async def edit_game(
     return GameResponse.model_validate(game)
 
 
-async def delete_game(db: AsyncSession, game_id: int, current_user: User):
-    game = await games_repository.delete_game(db, game_id, current_user)
+async def delete_game(db: AsyncSession, redis: Redis, game_id: int, current_user: User):
+    game = await games_repository.delete_game(db, redis, game_id, current_user)
     await db.commit()
     return game

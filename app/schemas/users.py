@@ -17,6 +17,11 @@ class UserRequest(BaseModel):
 class UserResponse(UserRequest):
     model_config = {"from_attributes": True}
     id: int
+    
+class AuthResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    access_token: str
+    refresh_token: str
 
 
 class HashedPassword(BaseModel):

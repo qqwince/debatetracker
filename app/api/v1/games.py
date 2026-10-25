@@ -5,7 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cache.cache import get_redis
 from app.dependency import get_current_user, get_db
 from app.models import User
-from app.schemas.games import GameListParams, GameRequest, GameResponse, GameUpdate
+from app.schemas.games import (
+    GameListParams,
+    GamePaginationResponse,
+    GameRequest,
+    GameResponse,
+    GameUpdate,
+)
 from app.service import games as games_service
 
 router = APIRouter()
@@ -20,17 +26,17 @@ async def create_game(
     return await games_service.create_game(db, payload, current_user)
 
 
-@router.get("/game/{game_id}", response_model=list[GameResponse])
+@router.get("/game/{game_id}", response_model=GameResponse)
 async def get_game_by_id(
+    game_id: int,
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
     current_user: User = Depends(get_current_user),
-    game_id: int | None = None,
 ):
     return await games_service.get_game_by_id(db, redis, current_user, game_id)
 
 
-@router.get("/game")
+@router.get("/game", response_model=GamePaginationResponse)
 async def get_game_pagination(
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
@@ -56,6 +62,7 @@ async def edit_game(
 async def delete_game(
     game_id: int,
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
     current_user: User = Depends(get_current_user),
 ):
-    return await games_service.delete_game(db, game_id, current_user)
+    return await games_service.delete_game(db, redis, game_id, current_user)

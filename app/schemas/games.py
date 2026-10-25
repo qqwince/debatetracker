@@ -33,6 +33,12 @@ class GameResponse(GameRequest):
     model_config = {"from_attributes": True}
     id: int
 
+class GamePaginationResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    items: list[GameResponse]
+    next_cursor: int | None
+    has_more: bool
+
 
 class GameCursorPage(BaseModel):
     items: list[GameResponse]
