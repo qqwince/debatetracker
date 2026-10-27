@@ -21,12 +21,15 @@ class UserResponse(UserRequest):
 class AuthResponse(BaseModel):
     model_config = {"from_attributes": True}
     access_token: str
-    refresh_token: str
+    
+class LogoutResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    status: bool
 
 
 class HashedPassword(BaseModel):
     password: str = Field(..., max_length=255)
 
 
-class RefreshTokenResponse(BaseModel):
+class RefreshToken(BaseModel):
     refresh_token: str

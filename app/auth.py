@@ -39,11 +39,11 @@ async def create_jwt_token(
     username: str, expires_delta: timedelta | None = None
 ) -> str:
     """Create a JWT token for the user."""
-    cache_ttl_seconds = settings.cache_ttl_seconds
+    cache_ttl_jwt_seconds = settings.CACHE_TTL_JWT_SECONDS
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(seconds=cache_ttl_seconds)
+        expire = datetime.now(UTC) + timedelta(seconds=cache_ttl_jwt_seconds)
 
     payload = {
         "sub": username,  # Subject (user identifier)
@@ -60,7 +60,7 @@ async def create_refresh_token(
     redis: Redis,
 ) -> str:
     """Create a refresh token for the user."""
-    expire = settings.cache_ttl_refresh_seconds
+    expire = settings.CACHE_TTL_REFRESH_TOKEN_SECONDS
 
     refresh_token = secrets.token_urlsafe(32)
 

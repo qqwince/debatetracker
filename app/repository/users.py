@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_token_pair, hash_password, verify_password
 from app.models import User
-from app.schemas.users import HashedPassword, UserResponse
+from app.schemas.users import HashedPassword, RefreshToken, UserResponse
 
 
 async def get_user(db: AsyncSession, login: str) -> User | None:
@@ -40,3 +40,10 @@ async def login_user(
         raise HTTPException(401, "Incorrect login or password")
     access_token, refresh_token = await create_token_pair(login, redis)
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+async def logout_user(
+    refresh_token: RefreshToken,
+    redis: Redis, 
+    ):
+    await redis.delete(f"refresh:{refresh_token}")
+    return "successfully"

@@ -63,12 +63,12 @@ async def get_game_by_id(
             "Game not found"
         )
 
-    cache_ttl_seconds = settings.cache_ttl_seconds
+    cache_ttl_game_seconds = settings.CACHE_TTL_GAME_SECONDS
 
     adapter = TypeAdapter(GameResponse)
     game_json = adapter.dump_json(game).decode("utf-8")
 
-    await redis.set(cache_key, game_json, ex=cache_ttl_seconds)
+    await redis.set(cache_key, game_json, ex=cache_ttl_game_seconds)
 
     return game
 
