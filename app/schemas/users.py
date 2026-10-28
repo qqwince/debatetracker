@@ -14,9 +14,10 @@ class UserRequest(BaseModel):
         return v
 
 
-class UserResponse(UserRequest):
+class UserResponse(BaseModel):
     model_config = {"from_attributes": True}
     id: int
+    login: str = Field(..., max_length=127)
     
 class AuthResponse(BaseModel):
     model_config = {"from_attributes": True}
