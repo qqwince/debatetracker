@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     CACHE_TTL_GAME_SECONDS: int = 2400
 
     # JWT
-    JWT_SECRET_KEY: str = "my-secret-key"
+    JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
 
     model_config = ConfigDict(env_file=".env")

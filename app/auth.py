@@ -23,14 +23,11 @@ async def get_jwt_secret_key() -> str:
     """Get JWT secret key from settings or generate a consistent one."""
     global _jwt_secret_key
 
-    # First, try to get from settings
     if hasattr(settings, "JWT_SECRET_KEY") and settings.JWT_SECRET_KEY:
         return settings.JWT_SECRET_KEY
 
-    # If not in settings, generate once and store globally
     if _jwt_secret_key is None:
         _jwt_secret_key = secrets.token_urlsafe(32)
-        print(f"Generated JWT secret key: {_jwt_secret_key}")  # For debugging
 
     return _jwt_secret_key
 
