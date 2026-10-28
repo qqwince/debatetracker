@@ -1,13 +1,10 @@
-import json
 
 from fastapi import HTTPException
-from pydantic import TypeAdapter
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.models import Game
-from app.schemas.games import GameCursorPage, GameResponse
+from app.schemas.games import GameCursorPage
 
 
 async def create_game(
@@ -43,16 +40,9 @@ async def create_game(
 
 async def get_game_by_id(
     db: AsyncSession,
-    redis,
     current_user,
     game_id,
 ):
-    cache_key = f"game:{current_user.id}:{game_id}"
-
-    cached_data = await redis.get(cache_key)
-    if cached_data:
-        return json.loads(cached_data)
-
     stmt = select(Game).where(Game.user_id == current_user.id, Game.id == game_id)
     result = await db.execute(stmt)
     game = result.scalar_one_or_none()
@@ -62,20 +52,12 @@ async def get_game_by_id(
             404,
             "Game not found"
         )
-
-    cache_ttl_game_seconds = settings.CACHE_TTL_GAME_SECONDS
-
-    adapter = TypeAdapter(GameResponse)
-    game_json = adapter.dump_json(game).decode("utf-8")
-
-    await redis.set(cache_key, game_json, ex=cache_ttl_game_seconds)
-
+    
     return game
 
 
 async def get_game_pagination(
     db: AsyncSession,
-    redis,
     current_user,
     limit,
     cursor,
@@ -112,18 +94,15 @@ async def edit_game(
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(result, field, value)
-
+    
     return result
 
 
 async def delete_game(
     db: AsyncSession,
-    redis,
     game_id,
     current_user,
 ):
-    cache_key = f"game:{current_user.id}:{game_id}"
-    await redis.delete(cache_key)
     
     db_game = delete(Game).where(Game.id == game_id, current_user.id == Game.user_id)
     result = await db.execute(db_game)

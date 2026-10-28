@@ -1,6 +1,9 @@
+import json
+
 from redis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cache.games import delete_game_cache, get_game_cache, set_game_cache
 from app.models import User
 from app.repository import games as games_repository
 from app.schemas.games import GameRequest, GameResponse
@@ -29,7 +32,11 @@ async def get_game_by_id(
     current_user: User,
     game_id: int,
 ):
-    game = await games_repository.get_game_by_id(db, redis, current_user, game_id)
+    cached_data = await get_game_cache(redis, current_user, game_id)
+    if cached_data:
+        return json.loads(cached_data)
+    game = await games_repository.get_game_by_id(db, current_user, game_id)
+    await set_game_cache(redis, current_user, game_id, cached_info=game)
     return game
 
 
@@ -41,20 +48,22 @@ async def get_game_pagination(
     cursor,
 ):
     game = await games_repository.get_game_pagination(
-        db, redis, current_user, limit, cursor
+        db, current_user, limit, cursor
     )
     return game
 
 
 async def edit_game(
-    db: AsyncSession, game_id: int, payload: GameRequest, current_user: User
+    db: AsyncSession, redis: Redis, game_id: int, payload: GameRequest, current_user: User
 ):
     game = await games_repository.edit_game(db, game_id, payload, current_user)
     await db.commit()
+    await set_game_cache(redis, current_user, game_id, cached_info=game)
     return GameResponse.model_validate(game)
 
 
 async def delete_game(db: AsyncSession, redis: Redis, game_id: int, current_user: User):
-    game = await games_repository.delete_game(db, redis, game_id, current_user)
+    game = await games_repository.delete_game(db, game_id, current_user)
     await db.commit()
+    await delete_game_cache(redis, current_user, game_id)
     return game

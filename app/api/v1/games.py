@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,9 +54,10 @@ async def edit_game(
     payload: GameUpdate,
     game_id: int,
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
     current_user: User = Depends(get_current_user),
 ):
-    return await games_service.edit_game(db, game_id, payload, current_user)
+    return await games_service.edit_game(db, redis, game_id, payload, current_user)
 
 
 @router.delete("/game")
